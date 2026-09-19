@@ -22,23 +22,30 @@
         "true": "p:pine",
         "false": "p:love",
         "time": "p:muted",
-        "os-fg": "p:base",
-        "os-bg": "p:subtle",
-        "root-fg": "p:base",
-        "root-bg": "p:gold",
-        "path": "p:gold",
+        "step-0": "p:surface",
+        "step-1": "p:highlight-high",
+        "step-2": "p:overlay",
+        "step-3": "p:highlight-med",
+        "step-4": "p:surface",
+        "moon": "p:iris",
+        "root": "p:love",
+        "lock": "p:gold",
+        "battery": "p:gold",
+        "session-fg": "p:text",
+        "path-fg": "p:foam",
+        "git-clean": "p:subtle",
         "git": "p:iris",
+        "git-alert": "p:love",
         "docker": "p:foam",
-        "go": "p:rose",
-        "haskell": "p:rose",
-        "julia": "p:rose",
-        "lua": "p:rose",
-        "python": "p:rose",
-        "rust": "p:rose"
+        "venv": "p:pine"
     },
     "transient_prompt": {
         "foreground": "p:time",
         "template": "{{ now | date \"15:04:05\" }} {{ if gt .Code 0 }}<p:false>\u276f</>{{ else }}<p:true>\u276f</>{{ end }} "
+    },
+    "secondary_prompt": {
+        "foreground": "p:time",
+        "template": "\u276f\u276f "
     },
     "blocks": [
         {
@@ -47,43 +54,56 @@
             "newline": true,
             "segments": [
                 {
-                    "type": "os",
-                    "style": "diamond",
-                    "trailing_diamond": "\ue0b0",
-                    "foreground": "p:os-fg",
-                    "background": "p:os-bg",
-                    "foreground_templates": [
-                        "{{ if .Root }}p:root-fg{{ end }}"
-                    ],
-                    "background_templates": [
-                        "{{ if .Root }}p:root-bg{{ end }}"
-                    ],
-                    "template": " {{ .Icon }} ",
-                    "properties": {
-                        "windows": "\ue70f"
-                    }
+                    "type": "root",
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
+                    "foreground": "p:root",
+                    "background": "p:step-0",
+                    "template": "# "
+                },
+                {
+                    "type": "session",
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
+                    "foreground": "p:session-fg",
+                    "background": "p:step-1",
+                    "template": "{{ if .SSHSession }} \ueb39 {{ .UserName }}@{{ .HostName }} {{ end }}"
                 },
                 {
                     "type": "path",
-                    "style": "plain",
-                    "foreground": "p:path",
-                    "template": " {{ .Path }} ",
-                    "properties": {
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
+                    "foreground": "p:path-fg",
+                    "background": "p:step-2",
+                    "template": " {{ if not .Writable }}<p:lock>\uf023</> {{ end }}{{ .Path }} ",
+                    "options": {
                         "home_icon": "~",
-                        "folder_icon": "..",
-                        "style": "agnoster_short"
+                        "folder_icon": "\u2026",
+                        "style": "agnoster_short",
+                        "max_depth": 3
                     }
                 },
                 {
                     "type": "git",
-                    "style": "plain",
-                    "foreground": "p:git",
-                    "template": "{{ .HEAD }} ",
-                    "properties": {
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
+                    "foreground": "p:git-clean",
+                    "background": "p:step-3",
+                    "template": " {{ .HEAD }}{{ $c := .Working.Unmerged }}{{ if gt .Staging.Unmerged $c }}{{ $c = .Staging.Unmerged }}{{ end }}{{ if gt $c 0 }} \uf071 {{ $c }}{{ end }} ",
+                    "foreground_templates": [
+                        "{{ if or (gt .Working.Unmerged 0) (gt .Staging.Unmerged 0) .Rebase .Merge .CherryPick .Revert }}p:git-alert{{ end }}",
+                        "{{ if or (.Working.Changed) (.Staging.Changed) }}p:git{{ end }}"
+                    ],
+                    "options": {
                         "branch_icon": "\ue725 ",
+                        "branch_gone_icon": "",
                         "cherry_pick_icon": "\ue29b ",
                         "commit_icon": "\uf417 ",
-                        "fetch_status": false,
+                        "fetch_status": true,
                         "fetch_stash_count": false,
                         "fetch_upstream_icon": false,
                         "merge_icon": "\ue727 ",
@@ -95,49 +115,46 @@
                 },
                 {
                     "type": "docker",
-                    "style": "plain",
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
                     "foreground": "p:docker",
-                    "template": "\uf308 {{ .Context }} "
-                },
-                {
-                    "type": "go",
-                    "style": "plain",
-                    "foreground": "p:go",
-                    "template": "\ue627 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
-                },
-                {
-                    "type": "haskell",
-                    "style": "plain",
-                    "foreground": "p:haskell",
-                    "template": "\ue61f {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
-                },
-                {
-                    "type": "julia",
-                    "style": "plain",
-                    "foreground": "p:julia",
-                    "template": "\ue624 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
-                },
-                {
-                    "type": "lua",
-                    "style": "plain",
-                    "foreground": "p:lua",
-                    "template": "\ue620 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+                    "background": "p:step-4",
+                    "template": " \uf308 {{ .Context }} "
                 },
                 {
                     "type": "python",
-                    "style": "plain",
-                    "foreground": "p:python",
-                    "template": "\ue73c {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} ",
-                    "properties": {
+                    "style": "powerline",
+                    "powerline_symbol": "\ue0b0",
+                    "leading_powerline_symbol": "\u2590",
+                    "foreground": "p:venv",
+                    "background": "p:step-4",
+                    "template": "{{ if .Venv }} \ue73c {{ .Venv }} {{ end }}",
+                    "options": {
+                        "display_mode": "environment",
+                        "fetch_version": false,
+                        "fetch_virtual_env": true,
                         "display_default": false,
-                        "display_mode": "context"
+                        "home_enabled": true
                     }
+                }
+            ]
+        },
+        {
+            "type": "prompt",
+            "alignment": "right",
+            "segments": [
+                {
+                    "type": "battery",
+                    "style": "plain",
+                    "foreground": "p:battery",
+                    "template": "{{ if and (eq .State.String \"Discharging\") (le .Percentage 25) }}\udb80\udc83 {{ .Percentage }}% {{ end }}"
                 },
                 {
-                    "type": "rust",
+                    "type": "status",
                     "style": "plain",
-                    "foreground": "p:rust",
-                    "template": "\ue7a8 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} "
+                    "foreground": "p:false",
+                    "template": "\uf00d {{ .Code }} "
                 },
                 {
                     "type": "executiontime",
@@ -147,7 +164,7 @@
                         "{{ if .Code }}p:false{{ end }}"
                     ],
                     "template": "\udb81\udd1f {{ .FormattedMs }} ",
-                    "properties": {
+                    "options": {
                         "threshold": 500,
                         "style": "austin"
                     }
@@ -167,7 +184,7 @@
                         "{{ if gt .Code 0 }}p:false{{ end }}"
                     ],
                     "template": "\u276f ",
-                    "properties": {
+                    "options": {
                         "always_enabled": true
                     }
                 }
